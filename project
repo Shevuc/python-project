@@ -1,0 +1,266 @@
+# =============================================================================
+# Projeto de Avaliação Individual - Programação em Python
+# Nome do Ficheiro: inventario_00_nome_apelido.py
+# Formando(a): [O teu Nome Completo]
+# Número: [O teu Número]
+# Data: Outubro / 2026
+# Descrição: Gestor de Inventário do Laboratório de Informática da Escola.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. ESTRUTURAS DE DADOS OBRIGATÓRIAS E CONSTANTES
+# -----------------------------------------------------------------------------
+
+# Tupla com as salas do laboratório (não mutável)
+SALAS = ('LAB1', 'LAB2', 'LAB3')
+
+# Tupla com os estados possíveis para os equipamentos
+ESTADOS = ('operacional', 'avariado', 'em reparação')
+
+# Lista de tipos de equipamentos permitidos
+tipos = ['computador', 'monitor', 'impressora', 'router', 'switch', 'projetor']
+
+# Dicionário principal com pré-carregamento de 6 equipamentos nas 3 salas
+inventario = {
+    'PC01': {
+        'nome': 'desktop hp elitedesk',
+        'tipo': 'computador',
+        'sala': 'LAB1',
+        'quantidade': 12,
+        'estado': 'operacional',
+    },
+    'MN01': {
+        'nome': 'monitor dell 24',
+        'tipo': 'monitor',
+        'sala': 'LAB1',
+        'quantidade': 12,
+        'estado': 'operacional',
+    },
+    'IMP01': {
+        'nome': 'impressora laser brother',
+        'tipo': 'impressora',
+        'sala': 'LAB3',
+        'quantidade': 1,
+        'estado': 'avariado',
+    },
+    'RT01': {
+        'nome': 'router cisco rv340',
+        'tipo': 'router',
+        'sala': 'LAB2',
+        'quantidade': 2,
+        'estado': 'operacional',
+    },
+    'SW01': {
+        'nome': 'switch cisco 24 portas',
+        'tipo': 'switch',
+        'sala': 'LAB2',
+        'quantidade': 4,
+        'estado': 'avariado',
+    },
+    'PR01': {
+        'nome': 'projetor epson e20',
+        'tipo': 'projetor',
+        'sala': 'LAB3',
+        'quantidade': 3,
+        'estado': 'operacional',
+    },
+}
+
+# Construção automática da lista de reparação no arranque
+lista_reparacao = []
+for codigo in inventario:
+    if inventario[codigo]['estado'] == 'avariado':
+        lista_reparacao.append(codigo)
+
+# Lista para guardar equipamentos reparados durante a execução
+reparados = []
+
+# Histórico de operações efetuadas no programa
+historico = []
+
+# -----------------------------------------------------------------------------
+# 2. CONSTRUÇÃO DO MENU PRINCIPAL (R0)
+# -----------------------------------------------------------------------------
+
+menu = '\n' + '=' * 10 + ' GESTOR DE INVENTÁRIO ' + '=' * 10 + '\n'
+menu += '1 - Listar equipamentos\n'
+menu += '2 - Adicionar equipamento\n'
+menu += '3 - Pesquisar equipamento\n'
+menu += '4 - Alterar estado de um equipamento\n'
+menu += '5 - Remover equipamento\n'
+menu += '6 - Lista de reparação\n'
+menu += '7 - Estatísticas\n'
+menu += '8 - Histórico de operações\n'
+menu += '0 - Sair\n'
+
+# Flag para controlo da execução do ciclo principal
+ativo = True
+
+# -----------------------------------------------------------------------------
+# 3. CICLO PRINCIPAL DA APLICAÇÃO
+# -----------------------------------------------------------------------------
+
+while ativo:
+    print(menu)
+    opcao = input('Escolha uma opção: ').strip()
+
+    # -------------------------------------------------------------------------
+    # R1 - Listar equipamentos
+    # -------------------------------------------------------------------------
+    if opcao == '1':
+        print('\n--- LISTA DE EQUIPAMENTOS ---')
+
+        if not inventario:
+            print('O inventário está vazio. Não há equipamentos para listar.')
+        else:
+            codigos_ordenados = sorted(inventario.keys())
+
+            print(
+                f"{'CÓDIGO':<8} | {'NOME':<30} | {'SALA':<6} | "
+                f"{'QUANTIDADE':<10} | {'ESTADO':<12}"
+            )
+            print('-' * 75)
+
+            for codigo in codigos_ordenados:
+                item = inventario[codigo]
+                nome_formatado = item['nome'].title()
+                sala = item['sala']
+                qtd = f"{item['quantidade']} un."
+                estado = item['estado']
+
+                print(
+                    f'{codigo:<8} | {nome_formatado:<30} | {sala:<6} | '
+                    f'{qtd:<10} | {estado:<12}'
+                )
+
+            total_registos = len(inventario)
+            print(f'\nTotal de registos: {total_registos}')
+
+    # -------------------------------------------------------------------------
+    # R2 - Adicionar equipamento
+    # -------------------------------------------------------------------------
+    elif opcao == '2':
+        print('\n--- ADICIONAR EQUIPAMENTO ---')
+
+        # 1. Pede o código e valida
+        codigo_input = input('Introduza o código do equipamento: ')
+        codigo = codigo_input.strip().upper()
+
+        if codigo == '':
+            print('Erro: O código não pode ficar vazio. A regressar ao menu.')
+        elif codigo in inventario:
+            print(f"Erro: O código '{codigo}' já existe no inventário.")
+        else:
+            # 2. Pede o nome e garante que não fica vazio
+            nome = input('Introduza o nome/descrição: ').strip().lower()
+            while nome == '':
+                print('Erro: O nome não pode ficar vazio.')
+                nome = input('Introduza o nome/descrição: ').strip().lower()
+
+            # 3. Pede o tipo e valida contra a lista 'tipos'
+            print(f"Tipos aceites: {', '.join(tipos)}")
+            tipo = input('Introduza o tipo: ').strip().lower()
+            while tipo not in tipos:
+                print(
+                    f"Tipo inválido! Escolha um dos seguintes: {', '.join(tipos)}"
+                )
+                tipo = input('Introduza o tipo: ').strip().lower()
+
+            # 4. Pede a sala e valida contra a tupla 'SALAS'
+            sala = input('Introduza a sala (LAB1, LAB2, LAB3): ').strip().upper()
+            while sala not in SALAS:
+                print('Sala inválida! As salas disponíveis são: LAB1, LAB2, LAB3')
+                sala = input('Introduza a sala: ').strip().upper()
+
+            # 5. Pede a quantidade e valida (tem de ser > 0)
+            qtd_input = int(input('Introduza a quantidade: '))
+            while qtd_input <= 0:
+                print('Erro: A quantidade tem de ser um número maior que zero.')
+                qtd_input = int(input('Introduza a quantidade: '))
+
+            # 6. Todo o equipamento novo entra como 'operacional'
+            estado = 'operacional'
+
+            # 7. Adiciona o equipamento ao dicionário inventario
+            inventario[codigo] = {
+                'nome': nome,
+                'tipo': tipo,
+                'sala': sala,
+                'quantidade': qtd_input,
+                'estado': estado,
+            }
+
+            # 8. Regista a operação no histórico
+            msg_historico = f"Adicionado equipamento {codigo} ({nome.title()}) na sala {sala}."
+            historico.append(msg_historico)
+
+            print(
+                f"\nSucesso: Equipamento '{codigo}' adicionado ao inventário!"
+            )
+
+    # -------------------------------------------------------------------------
+    # R3 - Pesquisar equipamento (a implementar nas próximas etapas)
+    # -------------------------------------------------------------------------
+    elif opcao == '3':
+        print('\nOpção 3 - Pesquisar equipamento (Em desenvolvimento)')
+
+    # -------------------------------------------------------------------------
+    # R4 - Alterar o estado de um equipamento (a implementar nas próximas etapas)
+    # -------------------------------------------------------------------------
+    elif opcao == '4':
+        print('\nOpção 4 - Alterar estado (Em desenvolvimento)')
+
+    # -------------------------------------------------------------------------
+    # R5 - Remover equipamento (a implementar nas próximas etapas)
+    # -------------------------------------------------------------------------
+    elif opcao == '5':
+        print('\nOpção 5 - Remover equipamento (Em desenvolvimento)')
+
+    # -------------------------------------------------------------------------
+    # R6 - Lista de reparação (a implementar nas próximas etapas)
+    # -------------------------------------------------------------------------
+    elif opcao == '6':
+        print('\nOpção 6 - Lista de reparação (Em desenvolvimento)')
+
+    # -------------------------------------------------------------------------
+    # R7 - Estatísticas (a implementar nas próximas etapas)
+    # -------------------------------------------------------------------------
+    elif opcao == '7':
+        print('\nOpção 7 - Estatísticas (Em desenvolvimento)')
+
+    # -------------------------------------------------------------------------
+    # R8 - Histórico de operações
+    # -------------------------------------------------------------------------
+    elif opcao == '8':
+        print('\n--- HISTÓRICO DE OPERAÇÕES ---')
+
+        if not historico:
+            print('Ainda não foram realizadas operações nesta sessão.')
+        else:
+            total_op = len(historico)
+            print(f'Total de operações realizadas na sessão: {total_op}\n')
+
+            ultimas_operacoes = historico[-5:]
+
+            print('Últimas operações efetuadas (máximo 5):')
+            num_ordem = 1
+            for operacao in ultimas_operacoes:
+                print(f' {num_ordem}. {operacao}')
+                num_ordem += 1
+
+    # -------------------------------------------------------------------------
+    # R0 - Sair da aplicação
+    # -------------------------------------------------------------------------
+    elif opcao == '0':
+        confirmacao = input('Tem a certeza que deseja sair? (s/n): ')
+        confirmacao = confirmacao.strip().lower()
+
+        if confirmacao == 's':
+            print('\nA encerrar o Gestor de Inventário... Até breve!')
+            ativo = False
+        else:
+            print('\nOperação cancelada. De volta ao menu principal.')
+
+    # Mensagem de erro para opções inválidas do menu
+    else:
+        print('\nOpção inválida! Por favor escolha um número entre 0 e 8.')
