@@ -269,10 +269,8 @@ while ativo:
             confirma = confirma.strip().lower()
 
             if confirma == 's':
-                # Remove do dicionario principal
                 del inventario[codigo]
 
-                # Retira todas as ocorrencias da lista de reparacao
                 while codigo in lista_reparacao:
                     lista_reparacao.remove(codigo)
 
@@ -303,7 +301,6 @@ while ativo:
 
             if proc == 's':
                 print()
-                # Processa reparações com ciclo while retirando o 1º elemento
                 while lista_reparacao:
                     cod_rep = lista_reparacao.pop(0)
                     inventario[cod_rep]['estado'] = 'operacional'
@@ -321,10 +318,56 @@ while ativo:
                 print('Operação cancelada. Os equipamentos mantêm-se em reparação.')
 
     # -------------------------------------------------------------------------
-    # R7 - Estatísticas (a implementar nas próximas etapas)
+    # R7 - Estatísticas
     # -------------------------------------------------------------------------
     elif opcao == '7':
-        print('\nOpção 7 - Estatísticas (Em desenvolvimento)')
+        print('\n--- ESTATÍSTICAS DO INVENTÁRIO ---')
+
+        if not inventario:
+            print('O inventário está vazio. Não há dados estatísticos para apresentar.')
+        else:
+            # 1. Lista de quantidades via List Comprehension e somatório
+            lista_qtds = [item['quantidade'] for item in inventario.values()]
+            total_unidades = sum(lista_qtds)
+            num_registos = len(inventario)
+
+            print(f"Total de registos de equipamentos: {num_registos}")
+            print(f"Total de unidades físicas: {total_unidades}")
+
+            # 2. Maior e menor quantidade num equipamento
+            maior_qtd = max(lista_qtds)
+            menor_qtd = min(lista_qtds)
+            print(f"Maior quantidade registada num equipamento: {maior_qtd}")
+            print(f"Menor quantidade registada num equipamento: {menor_qtd}")
+
+            # 3. Tipos distintos existentes no inventário usando set e sorted
+            tipos_existentes = set([item['tipo'] for item in inventario.values()])
+            tipos_ordenados = sorted(tipos_existentes)
+            tipos_str = ', '.join([t.title() for t in tipos_ordenados])
+            print(f"Tipos distintos em stock ({len(tipos_existentes)}): {tipos_str}")
+
+            # 4. Registos por estado (calculado com dicionário)
+            contagem_estados = {}
+            for item in inventario.values():
+                est = item['estado']
+                if est not in contagem_estados:
+                    contagem_estados[est] = 1
+                else:
+                    contagem_estados[est] += 1
+
+            print("\nRegistos por estado:")
+            for est_nome in ESTADOS:
+                qtd_est = contagem_estados.get(est_nome, 0)
+                print(f"  - {est_nome.title()}: {qtd_est}")
+
+            # 5. Total de unidades por sala (percorrendo a tupla SALAS)
+            print("\nTotal de unidades por sala:")
+            for sala_nome in SALAS:
+                qtd_sala = 0
+                for item in inventario.values():
+                    if item['sala'] == sala_nome:
+                        qtd_sala += item['quantidade']
+                print(f"  - {sala_nome}: {qtd_sala} unidades")
 
     # -------------------------------------------------------------------------
     # R8 - Histórico de operações
