@@ -142,7 +142,6 @@ while ativo:
     elif opcao == '2':
         print('\n--- ADICIONAR EQUIPAMENTO ---')
 
-        # 1. Pede o código e valida
         codigo_input = input('Introduza o código do equipamento: ')
         codigo = codigo_input.strip().upper()
 
@@ -151,13 +150,11 @@ while ativo:
         elif codigo in inventario:
             print(f"Erro: O código '{codigo}' já existe no inventário.")
         else:
-            # 2. Pede o nome e garante que não fica vazio
             nome = input('Introduza o nome/descrição: ').strip().lower()
             while nome == '':
                 print('Erro: O nome não pode ficar vazio.')
                 nome = input('Introduza o nome/descrição: ').strip().lower()
 
-            # 3. Pede o tipo e valida contra a lista 'tipos'
             print(f"Tipos aceites: {', '.join(tipos)}")
             tipo = input('Introduza o tipo: ').strip().lower()
             while tipo not in tipos:
@@ -166,22 +163,18 @@ while ativo:
                 )
                 tipo = input('Introduza o tipo: ').strip().lower()
 
-            # 4. Pede a sala e valida contra a tupla 'SALAS'
             sala = input('Introduza a sala (LAB1, LAB2, LAB3): ').strip().upper()
             while sala not in SALAS:
                 print('Sala inválida! As salas disponíveis são: LAB1, LAB2, LAB3')
                 sala = input('Introduza a sala: ').strip().upper()
 
-            # 5. Pede a quantidade e valida (tem de ser > 0)
             qtd_input = int(input('Introduza a quantidade: '))
             while qtd_input <= 0:
                 print('Erro: A quantidade tem de ser um número maior que zero.')
                 qtd_input = int(input('Introduza a quantidade: '))
 
-            # 6. Todo o equipamento novo entra como 'operacional'
             estado = 'operacional'
 
-            # 7. Adiciona o equipamento ao dicionário inventario
             inventario[codigo] = {
                 'nome': nome,
                 'tipo': tipo,
@@ -190,7 +183,6 @@ while ativo:
                 'estado': estado,
             }
 
-            # 8. Regista a operação no histórico
             msg_historico = f"Adicionado equipamento {codigo} ({nome.title()}) na sala {sala}."
             historico.append(msg_historico)
 
@@ -199,28 +191,134 @@ while ativo:
             )
 
     # -------------------------------------------------------------------------
-    # R3 - Pesquisar equipamento (a implementar nas próximas etapas)
+    # R3 - Pesquisar equipamento
     # -------------------------------------------------------------------------
     elif opcao == '3':
-        print('\nOpção 3 - Pesquisar equipamento (Em desenvolvimento)')
+        print('\n--- PESQUISAR EQUIPAMENTO ---')
+        codigo = input('Introduza o código a pesquisar: ').strip().upper()
+
+        equipamento = inventario.get(codigo)
+
+        if equipamento is not None:
+            print(f"\nFICHA DO EQUIPAMENTO [{codigo}]")
+            print('-' * 35)
+
+            for chave, valor in equipamento.items():
+                if chave == 'nome':
+                    valor_exibicao = valor.title()
+                else:
+                    valor_exibicao = valor
+                print(f"{chave.title():<12}: {valor_exibicao}")
+            print('-' * 35)
+        else:
+            print(f"Erro: O equipamento com o código '{codigo}' não existe.")
 
     # -------------------------------------------------------------------------
-    # R4 - Alterar o estado de um equipamento (a implementar nas próximas etapas)
+    # R4 - Alterar estado de um equipamento
     # -------------------------------------------------------------------------
     elif opcao == '4':
-        print('\nOpção 4 - Alterar estado (Em desenvolvimento)')
+        print('\n--- ALTERAR ESTADO ---')
+        codigo = input('Introduza o código do equipamento: ').strip().upper()
+
+        if codigo not in inventario:
+            print(f"Erro: O equipamento com o código '{codigo}' não existe.")
+        else:
+            estado_atual = inventario[codigo]['estado']
+            print(f"Equipamento: {codigo} | Estado atual: '{estado_atual}'")
+            print(f"Estados válidos: {', '.join(ESTADOS)}")
+
+            novo_estado = input('Introduza o novo estado: ').strip().lower()
+
+            while novo_estado not in ESTADOS:
+                print(
+                    f"Estado inválido! Escolha um dos seguintes: {', '.join(ESTADOS)}"
+                )
+                novo_estado = input('Introduza o novo estado: ').strip().lower()
+
+            if novo_estado == estado_atual:
+                print('O novo estado é igual ao estado atual. Nenhuma alteração efetuada.')
+            else:
+                inventario[codigo]['estado'] = novo_estado
+
+                if novo_estado == 'avariado':
+                    if codigo not in lista_reparacao:
+                        lista_reparacao.append(codigo)
+                else:
+                    if codigo in lista_reparacao:
+                        lista_reparacao.remove(codigo)
+
+                msg_hist = f"Estado de {codigo}: {estado_atual} -> {novo_estado}"
+                historico.append(msg_hist)
+
+                print(
+                    f"Sucesso: Estado de '{codigo}' atualizado para '{novo_estado}'."
+                )
 
     # -------------------------------------------------------------------------
-    # R5 - Remover equipamento (a implementar nas próximas etapas)
+    # R5 - Remover equipamento
     # -------------------------------------------------------------------------
     elif opcao == '5':
-        print('\nOpção 5 - Remover equipamento (Em desenvolvimento)')
+        print('\n--- REMOVER EQUIPAMENTO ---')
+        codigo = input('Introduza o código do equipamento a remover: ').strip().upper()
+
+        if codigo not in inventario:
+            print(f"Erro: O equipamento com o código '{codigo}' não existe.")
+        else:
+            nome_eq = inventario[codigo]['nome'].title()
+            confirma = input(f"Tem a certeza que deseja remover '{codigo} - {nome_eq}'? (s/n): ")
+            confirma = confirma.strip().lower()
+
+            if confirma == 's':
+                # Remove do dicionario principal
+                del inventario[codigo]
+
+                # Retira todas as ocorrencias da lista de reparacao
+                while codigo in lista_reparacao:
+                    lista_reparacao.remove(codigo)
+
+                msg_hist = f"Removido equipamento {codigo} ({nome_eq}) do inventário."
+                historico.append(msg_hist)
+
+                print(f"Sucesso: O equipamento '{codigo}' foi removido com sucesso.")
+            else:
+                print('Operação cancelada. O equipamento não foi removido.')
 
     # -------------------------------------------------------------------------
-    # R6 - Lista de reparação (a implementar nas próximas etapas)
+    # R6 - Lista de reparação
     # -------------------------------------------------------------------------
     elif opcao == '6':
-        print('\nOpção 6 - Lista de reparação (Em desenvolvimento)')
+        print('\n--- LISTA DE REPARAÇÃO ---')
+
+        if not lista_reparacao:
+            print('Não há equipamentos a aguardar reparação neste momento.')
+        else:
+            print('Equipamentos a aguardar reparação (por ordem):')
+            num = 1
+            for cod in lista_reparacao:
+                nome_item = inventario[cod]['nome'].title()
+                print(f"  {num}. {cod} - {nome_item}")
+                num += 1
+
+            proc = input('\nProcessar todas as reparações? (s/n): ').strip().lower()
+
+            if proc == 's':
+                print()
+                # Processa reparações com ciclo while retirando o 1º elemento
+                while lista_reparacao:
+                    cod_rep = lista_reparacao.pop(0)
+                    inventario[cod_rep]['estado'] = 'operacional'
+                    reparados.append(cod_rep)
+
+                    nome_rep = inventario[cod_rep]['nome'].title()
+                    print(f"  A reparar {cod_rep} ({nome_rep})...")
+
+                    msg_hist = f"Reparação concluída: {cod_rep} passou para operacional."
+                    historico.append(msg_hist)
+
+                print('\nTodas as reparações foram concluídas com sucesso!')
+                print(f'Equipamentos reparados nesta sessão: {reparados}')
+            else:
+                print('Operação cancelada. Os equipamentos mantêm-se em reparação.')
 
     # -------------------------------------------------------------------------
     # R7 - Estatísticas (a implementar nas próximas etapas)
